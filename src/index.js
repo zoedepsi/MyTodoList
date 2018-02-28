@@ -17,9 +17,12 @@ class TodoItem extends React.Component {
         if (this.props.visible) {
             return (
                 <li>
-                    <input className="checkButton" type="checkbox" checked={this.props.item.completed} onChange={this.handleCheckBox.bind(this)} />
-                    <input className="inputText" type="text" disabled value={this.props.item.content}/>
-                    <button className="delBtn" onClick={this.handledelete.bind(this)}>del</button>
+                    <div className="view">
+                    <input className='toggle' type="checkbox" checked={this.props.item.completed} onChange={this.handleCheckBox.bind(this)} />
+                    <label>{this.props.item.content}</label>   
+                    <button className="destroy" onClick={this.handledelete.bind(this)}></button>
+                    </div>
+                    <input className="edit" type="text" disabled value={this.props.item.content}/>
                 </li>
             )
         }
@@ -46,7 +49,10 @@ class TodoList extends React.Component {
             rows.push(<TodoItem item={item} visible={this.props.status === "all" || this.props.status === item.completed} key={index} onCheckBoxChange={this.handleCheckBoxChange.bind(this,index)} onDelete={this.handleDelete.bind(this,index)}/>);
         });
         return (
-            <ul>{rows}</ul>
+            <section className='main'>
+                <ul className="todo-list">{rows}</ul>
+            </section>
+            
         )
     }
 }
@@ -67,8 +73,8 @@ class TodoInput extends React.Component {
     render() {
         return (
             <div>
-                <button onClick={this.checkAll.bind(this)}>全选</button>
-                <input placeholder='今天要做什么？' onKeyUp={this.keyUp.bind(this)} ref={(input) => { this.textInput = input }} />
+                <input className='toggle-all' type='checkbox' onChange={this.checkAll.bind(this)}/>
+                <input className='new-todo' placeholder='今天要做什么？' onKeyUp={this.keyUp.bind(this)} ref={(input) => { this.textInput = input }} />
             </div>
         )
     }
@@ -81,15 +87,15 @@ class TodoOption extends React.Component {
     }
     render() {
         return (
-            <div>
-                <span>剩余{1}条</span>
-                <ul>
-                    <li onClick={this.handleStatusChange.bind(this, "all")}>All</li>
-                    <li onClick={this.handleStatusChange.bind(this, false)}>Active</li>
-                    <li onClick={this.handleStatusChange.bind(this, true)}>Completed</li>
+            <footer className="footer">
+                <span className="todo-count">剩余{1}条</span>
+                <ul className="filters">
+                    <li onClick={this.handleStatusChange.bind(this, "all")}><a>All</a></li>
+                    <li onClick={this.handleStatusChange.bind(this, false)}><a>Active</a></li>
+                    <li onClick={this.handleStatusChange.bind(this, true)}><a>Completed</a></li>
                 </ul>
-                <button>清除</button>
-            </div>
+                <button className="clear-completed">Clear completed</button>
+            </footer>
         )
 
     }
