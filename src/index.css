@@ -121,6 +121,7 @@ label[for='toggle-all'] {
 
 .toggle-all {
 	position: absolute;
+	z-index: 10000;
 	top: 10px;
 	left: 0px;
 	width: 60px;
