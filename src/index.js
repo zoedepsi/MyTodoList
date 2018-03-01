@@ -1,17 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types'
 import './index.css';
 
 class TodoItem extends React.Component {
+    static propTypes = {
+        onCheckBoxChange: PropTypes.func.isRequired,
+        onDelete: PropTypes.func.isRequired,
+    }
     handleCheckBox() {
-        if (this.props.onCheckBoxChange) {
-            this.props.onCheckBoxChange()
-        }
+        this.props.onCheckBoxChange()
     }
     handledelete() {
-        if (this.props.onDelete) {
-            this.props.onDelete()
-        }
+        this.props.onDelete()
     }
     render() {
         if (this.props.visible) {
@@ -30,15 +31,20 @@ class TodoItem extends React.Component {
     }
 }
 class TodoList extends React.Component {
+    static propTypes = {
+        onCheckBoxChange: PropTypes.func.isRequired,
+        onDelete: PropTypes.func.isRequired,
+        onCheckAll: PropTypes.func.isRequired,
+        status: PropTypes.string || PropTypes.bool
+    }
     handleCheckBoxChange(index) {
-        if (this.props.onCheckBoxChange) {
-            this.props.onCheckBoxChange(index)
-        }
+        this.props.onCheckBoxChange(index)
     }
     handleDelete(index) {
-        if (this.props.onDelete) {
-            this.props.onDelete(index)
-        }
+        this.props.onDelete(index)
+    }
+    checkAll() {
+        this.props.onCheckAll();
     }
     render() {
         var rows = [];
@@ -50,45 +56,44 @@ class TodoList extends React.Component {
         });
         return (
             <section className='main'>
+                <input className='toggle-all' type='checkbox' onChange={this.checkAll.bind(this)} />
                 <ul className="todo-list">{rows}</ul>
             </section>
-
         )
     }
 }
 
 class TodoInput extends React.Component {
+    static propTypes = {
+        onEnter: PropTypes.func.isRequired
+    }
     keyUp(e) {
         if (e.keyCode === 13 && this.props.onEnter) {
             this.props.onEnter(e.target.value, () => {
+                //通过回调函数设置输入框为空，思考有没有更好的方式？
                 this.textInput.value = ""
             })
-        }
-    }
-    checkAll() {
-        if (this.props.onCheckAll) {
-            this.props.onCheckAll();
         }
     }
     render() {
         return (
             <div>
-                <input className='toggle-all' type='checkbox' onChange={this.checkAll.bind(this)} />
                 <input className='new-todo' placeholder='今天要做什么？' onKeyUp={this.keyUp.bind(this)} ref={(input) => { this.textInput = input }} />
             </div>
         )
     }
 }
 class TodoOption extends React.Component {
+    static propTypes = {
+        itemcounts: PropTypes.func.isRequired,
+        onStatusChange: PropTypes.func.isRequired,
+        onClearCompleted: PropTypes.func.isRequired,
+    }
     handleStatusChange(status) {
-        if (this.props.onStatusChange) {
-            this.props.onStatusChange(status)
-        }
+        this.props.onStatusChange(status)
     }
     handleClearCompleted() {
-        if (this.props.onClearCompleted) {
-            this.props.onClearCompleted()
-        }
+        this.props.onClearCompleted()
     }
     render() {
         return (
@@ -102,7 +107,6 @@ class TodoOption extends React.Component {
                 <button className="clear-completed" onClick={this.handleClearCompleted.bind(this)} >Clear completed</button>
             </footer>
         )
-
     }
 }
 class TodoContainer extends React.Component {
@@ -123,7 +127,7 @@ class TodoContainer extends React.Component {
     }
     getUnCompleteCount() {
         let newList = [];
-        let itemList = JSON.parse(localStorage.getItem('itemList'));
+        let itemList = this._getStorage();
         itemList.forEach(item => {
             if (!item.completed) {
                 newList.push(item);
@@ -132,64 +136,59 @@ class TodoContainer extends React.Component {
         return newList.length
     }
     handleCheckBoxChange(index) {
-        let itemList = JSON.parse(localStorage.getItem('itemList'));
+        let itemList = this._getStorage()
         itemList[index].completed = !itemList[index].completed;
-        localStorage.setItem("itemList", JSON.stringify(itemList))
-        this.setState({
-            items: JSON.parse(localStorage.getItem("itemList"))
-        })
+        this._setStorage(itemList)
     }
     handleEnterKey(value, callback) {
         let item = { content: value, completed: false };
         if (localStorage.getItem('itemList')) {
-            let itemList = JSON.parse(localStorage.getItem('itemList'));
+            let itemList = this._getStorage();
             itemList.push(item);
-            localStorage.setItem("itemList", JSON.stringify(itemList))
+            this._setStorage(itemList);
         } else {
             let itemList = [];
             itemList.push(item);
-            localStorage.setItem("itemList", JSON.stringify(itemList))
+            this._setStorage(itemList);
         }
-        this.setState({
-            items: JSON.parse(localStorage.getItem("itemList"))
-        })
         callback();
     }
     handleDelete(index) {
-        let itemList = JSON.parse(localStorage.getItem('itemList'));
+        let itemList = this._getStorage();
         let newList = [...itemList.slice(0, index), ...itemList.slice(index + 1)]
-        localStorage.setItem("itemList", JSON.stringify(newList))
-        this.setState({
-            items: JSON.parse(localStorage.getItem("itemList"))
-        })
+        this._setStorage(newList);
     }
     handleCheckAll() {
-        let newList=[];
-        let itemList = JSON.parse(localStorage.getItem('itemList'));
+        let newList = [];
+        let itemList = this._getStorage();
         itemList.forEach(item => {
-            if(!item.completed){
+            if (!item.completed) {
                 newList.push(item);
-                item.completed=true;
-            }    
-        })
-        if(!newList.length){
-            itemList.forEach(item => {
-                    item.completed=!item.completed;  
-            })
-        }
-        localStorage.setItem("itemList", JSON.stringify(itemList))
-        this.setState({
-            items: JSON.parse(localStorage.getItem("itemList"))
-        })
-    }
-    handleClearCompleted() {
-        let itemList = JSON.parse(localStorage.getItem('itemList'));
-        itemList.forEach((item, index) => {
-            if (item.completed) {
-                itemList = [...itemList.slice(0, index), ...itemList.slice(index + 1)]
+                item.completed = true;
             }
         })
-        localStorage.setItem("itemList", JSON.stringify(itemList))
+        if (!newList.length) {
+            itemList.forEach(item => {
+                item.completed = !item.completed;
+            })
+        }
+        this._setStorage(itemList);
+    }
+    handleClearCompleted() {
+        let itemList = this._getStorage();
+        let newList = [];
+        itemList.forEach((item, index) => {
+            if (!item.completed) {
+                newList.push(item)
+            }
+        })
+        this._setStorage(newList);
+    }
+    _getStorage() {
+        return JSON.parse(localStorage.getItem('itemList'))
+    }
+    _setStorage(list) {
+        localStorage.setItem("itemList", JSON.stringify(list))
         this.setState({
             items: JSON.parse(localStorage.getItem("itemList"))
         })
@@ -197,13 +196,11 @@ class TodoContainer extends React.Component {
     render() {
         return (
             <div>
-                <TodoInput onEnter={this.handleEnterKey} onCheckAll={this.handleCheckAll.bind(this)} />
-                <TodoList items={this.state.items} status={this.state.itemStatus} onCheckBoxChange={this.handleCheckBoxChange.bind(this)} onDelete={this.handleDelete.bind(this)} />
+                <TodoInput onEnter={this.handleEnterKey} />
+                <TodoList items={this.state.items} status={this.state.itemStatus} onCheckAll={this.handleCheckAll.bind(this)} onCheckBoxChange={this.handleCheckBoxChange.bind(this)} onDelete={this.handleDelete.bind(this)} />
                 <TodoOption onStatusChange={this.handleStatusChange} onClearCompleted={this.handleClearCompleted.bind(this)} itemcounts={this.getUnCompleteCount.bind(this)} />
             </div>
         )
-
-
     }
 }
 
