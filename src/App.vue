@@ -2,7 +2,7 @@
   <div id="app">
     <section class="todoapp">
 			<header class="header">
-				<h1>todos</h1>
+				<h1>HiTodos</h1>
 				<input class="new-todo" v-model.trim="newTodo" @keyup.enter="addNewTodo" autofocus autocomplete="off" placeholder="What needs to be done?">
 			</header>
 			<section class="main" v-show="todos.length" >
@@ -32,6 +32,13 @@
 				</button>
 			</footer>
 		</section>
+    <footer class="info">
+			<p>双击编辑一条待办</p>
+			<p>回车添加一条待办</p>
+      <p>单选框切换待办状态</p>
+      <p>您的待办会保存在本地存储，请放心关闭浏览器，数据不会丢失</p>
+		</footer>
+
   </div>
 </template>
 
@@ -85,6 +92,10 @@ export default {
       return word + (count === 1 ? "" : "s");
     },
     addNewTodo() {
+      var value=this.newTodo;
+      if(!value){
+        return;
+      }
       this.todos.push({ title: this.newTodo, completed: false });
       this.newTodo = "";
     },
@@ -100,6 +111,9 @@ export default {
       this.tempTodo = todo;
     },
     doneEdit(todo) {
+      if (!this.tempTodo) {
+					return;
+				}
       this.tempTodo = null;
       if (!todo.title) {
         this.deleteTodo(todo);
